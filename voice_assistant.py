@@ -1,5 +1,5 @@
 import speech_recognition as sr
-from openai import OpenAI
+import openai
 import os
 import platform
 import subprocess
@@ -35,7 +35,7 @@ try:
         del os.environ['HTTPS_PROXY']
     
     # Initialize client with minimal configuration
-    client = OpenAI(api_key=api_key)
+    client = openai.OpenAI(api_key=api_key)
     logger.info("OpenAI client initialized successfully")
 except Exception as e:
     logger.error(f"Error initializing OpenAI client: {str(e)}")
