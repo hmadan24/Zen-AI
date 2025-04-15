@@ -34,8 +34,11 @@ try:
     if 'HTTPS_PROXY' in os.environ:
         del os.environ['HTTPS_PROXY']
     
-    # Initialize client with minimal configuration
-    client = openai.OpenAI(api_key=api_key)
+    # Initialize client with minimal configuration and explicit proxy settings
+    client = openai.OpenAI(
+        api_key=api_key,
+        base_url="https://api.openai.com/v1"  # Explicitly set the base URL
+    )
     logger.info("OpenAI client initialized successfully")
 except Exception as e:
     logger.error(f"Error initializing OpenAI client: {str(e)}")
