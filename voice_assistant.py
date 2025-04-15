@@ -44,7 +44,7 @@ try:
     # Initialize client with minimal configuration
     client_config = {
         'api_key': api_key,
-        'base_url': 'https://api.openai.com/v1'
+        'base_url': 'https://api.openai.com/v1.74.0'
     }
     logger.info(f"Initializing OpenAI client with config: {client_config}")
     client = openai.OpenAI(api_key=api_key)
