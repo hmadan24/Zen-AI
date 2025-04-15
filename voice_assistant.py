@@ -7,6 +7,15 @@ from dotenv import load_dotenv
 import sys
 import time
 import threading
+import logging
+
+# Configure logging
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    stream=sys.stdout
+)
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
@@ -14,15 +23,24 @@ load_dotenv()
 # Verify OpenAI API key
 api_key = os.getenv('OPENAI_API_KEY')
 if not api_key:
-    print("Error: OPENAI_API_KEY not found in .env file")
+    logger.error("Error: OPENAI_API_KEY not found in environment variables")
     sys.exit(1)
 
 # Initialize OpenAI client
 try:
+    # Remove any proxy environment variables that might interfere
+    if 'HTTP_PROXY' in os.environ:
+        del os.environ['HTTP_PROXY']
+    if 'HTTPS_PROXY' in os.environ:
+        del os.environ['HTTPS_PROXY']
+    
+    # Initialize client with minimal configuration
     client = OpenAI(api_key=api_key)
-    print("OpenAI client initialized successfully")
+    logger.info("OpenAI client initialized successfully")
 except Exception as e:
-    print(f"Error initializing OpenAI client: {str(e)}")
+    logger.error(f"Error initializing OpenAI client: {str(e)}")
+    logger.error(f"Error type: {type(e)}")
+    logger.error(f"Error args: {e.args}")
     sys.exit(1)
 
 class VoiceAssistant:
