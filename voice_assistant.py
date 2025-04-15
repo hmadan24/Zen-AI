@@ -19,10 +19,7 @@ if not api_key:
 
 # Initialize OpenAI client
 try:
-    client = OpenAI(
-        api_key=api_key,
-        base_url="https://api.openai.com/v1"
-    )
+    client = OpenAI(api_key=api_key)
     print("OpenAI client initialized successfully")
 except Exception as e:
     print(f"Error initializing OpenAI client: {str(e)}")
