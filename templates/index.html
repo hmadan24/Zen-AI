@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+
+        body {
+            background-color: #000;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .circle {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: linear-gradient(180deg, #4B91F7 0%, #367AF6 100%);
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            backface-visibility: hidden;
+            transform-style: preserve-3d;
+            will-change: transform;
+        }
+
+        /* Listening animation */
+        @keyframes listening {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* Speaking animation */
+        @keyframes speaking {
+            0% { transform: scale(1); }
+            25% { transform: scale(0.95); }
+            50% { transform: scale(1); }
+            75% { transform: scale(0.95); }
+            100% { transform: scale(1); }
+        }
+
+        .circle.listening {
+            animation: listening 2s infinite;
+        }
+
+        .circle.speaking {
+            animation: speaking 1s infinite;
+        }
+
+        .toggle-button {
+            position: fixed;
+            bottom: 40px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #fff;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-button:hover {
+            transform: scale(1.1);
+        }
+
+        .toggle-button .icon {
+            font-size: 24px;
+            color: #000;
+        }
+
+        .status {
+            position: fixed;
+            top: 20px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 10px;
+        }
+
+        #messages {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="status" id="status"></div>
+        <div class="circle" id="mainCircle"></div>
+        <button class="toggle-button" onclick="toggleAssistant()">
+            <span class="icon" id="toggleIcon">▶</span>
+        </button>
+        <div id="messages"></div>
+    </div>
+
+    <script>
+        let isRunning = false;
+        let isPaused = false;
+        const mainCircle = document.getElementById('mainCircle');
+        const toggleIcon = document.getElementById('toggleIcon');
+        let messagePolling;
+
+        function updateStatus(message) {
+            document.getElementById('status').textContent = message;
+        }
+
+        function addMessage(message, type = 'assistant') {
+            if (type === 'assistant') {
+                mainCircle.classList.remove('listening');
+                mainCircle.classList.add('speaking');
+                setTimeout(() => {
+                    mainCircle.classList.remove('speaking');
+                }, 2000);
+            }
+        }
+
+        async function toggleAssistant() {
+            if (!isRunning) {
+                try {
+                    toggleIcon.textContent = '⏸';
+                    updateStatus('Starting voice assistant...');
+                    const response = await fetch('/start', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ voice_id: '21m00Tcm4TlvDq8ikWAM' })
+                    });
+                    const data = await response.json();
+                    if (data.status === 'started') {
+                        isRunning = true;
+                        isPaused = false;
+                        updateStatus('Listening...');
+                        mainCircle.classList.add('listening');
+                        startMessagePolling();
+                    }
+                } catch (error) {
+                    updateStatus('Error: ' + error);
+                    toggleIcon.textContent = '▶';
+                }
+            } else {
+                if (!isPaused) {
+                    try {
+                        toggleIcon.textContent = '▶';
+                        updateStatus('Paused');
+                        const response = await fetch('/pause', { method: 'POST' });
+                        const data = await response.json();
+                        if (data.status === 'paused') {
+                            isPaused = true;
+                            mainCircle.classList.remove('listening', 'speaking');
+                        }
+                    } catch (error) {
+                        console.error('Error pausing:', error);
+                    }
+                } else {
+                    try {
+                        toggleIcon.textContent = '⏸';
+                        updateStatus('Listening...');
+                        const response = await fetch('/resume', { method: 'POST' });
+                        const data = await response.json();
+                        if (data.status === 'resumed') {
+                            isPaused = false;
+                            mainCircle.classList.add('listening');
+                        }
+                    } catch (error) {
+                        console.error('Error resuming:', error);
+                    }
+                }
+            }
+        }
+
+        function startMessagePolling() {
+            messagePolling = setInterval(async () => {
+                try {
+                    const response = await fetch('/messages');
+                    const data = await response.json();
+                    data.messages.forEach(([type, content]) => {
+                        addMessage(content, type);
+                    });
+                } catch (error) {
+                    console.error('Error polling messages:', error);
+                }
+            }, 1000);
+        }
+
+        function stopMessagePolling() {
+            if (messagePolling) {
+                clearInterval(messagePolling);
+            }
+        }
+    </script>
+</body>
+</html> 
