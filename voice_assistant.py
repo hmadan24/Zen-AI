@@ -47,7 +47,7 @@ try:
         'base_url': 'https://api.openai.com/v1'
     }
     logger.info(f"Initializing OpenAI client with config: {client_config}")
-    client = openai.OpenAI(**client_config)
+    client = openai.OpenAI(api_key=api_key)
     logger.info("OpenAI client initialized successfully")
 except Exception as e:
     logger.error(f"Error initializing OpenAI client: {str(e)}")
