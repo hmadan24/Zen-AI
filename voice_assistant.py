@@ -28,17 +28,26 @@ if not api_key:
 
 # Initialize OpenAI client
 try:
-    # Remove any proxy environment variables that might interfere
-    if 'HTTP_PROXY' in os.environ:
-        del os.environ['HTTP_PROXY']
-    if 'HTTPS_PROXY' in os.environ:
-        del os.environ['HTTPS_PROXY']
+    # Log environment variables (excluding sensitive ones)
+    logger.info("Environment variables before OpenAI client initialization:")
+    for key, value in os.environ.items():
+        if 'KEY' not in key.upper() and 'SECRET' not in key.upper() and 'PROXY' not in key.upper():
+            logger.info(f"{key}: {value}")
     
-    # Initialize client with minimal configuration and explicit proxy settings
-    client = openai.OpenAI(
-        api_key=api_key,
-        base_url="https://api.openai.com/v1"  # Explicitly set the base URL
-    )
+    # Remove any proxy environment variables that might interfere
+    proxy_vars = ['HTTP_PROXY', 'HTTPS_PROXY', 'http_proxy', 'https_proxy', 'ALL_PROXY', 'all_proxy']
+    for var in proxy_vars:
+        if var in os.environ:
+            logger.info(f"Removing proxy environment variable: {var}")
+            del os.environ[var]
+    
+    # Initialize client with minimal configuration
+    client_config = {
+        'api_key': api_key,
+        'base_url': 'https://api.openai.com/v1'
+    }
+    logger.info(f"Initializing OpenAI client with config: {client_config}")
+    client = openai.OpenAI(**client_config)
     logger.info("OpenAI client initialized successfully")
 except Exception as e:
     logger.error(f"Error initializing OpenAI client: {str(e)}")
