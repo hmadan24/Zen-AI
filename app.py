@@ -4,10 +4,22 @@ import threading
 import queue
 import logging
 import time
+import sys
+import os
 
 # Configure logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    stream=sys.stdout
+)
 logger = logging.getLogger(__name__)
+
+# Log environment variables (excluding sensitive ones)
+logger.info("Environment variables in app.py:")
+for key, value in os.environ.items():
+    if 'KEY' not in key.upper() and 'SECRET' not in key.upper():
+        logger.info(f"{key}: {value}")
 
 app = Flask(__name__)
 assistant = None
