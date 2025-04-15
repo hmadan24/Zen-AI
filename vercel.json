@@ -19,5 +19,4 @@
   "env": {
     "PYTHONUNBUFFERED": "1"
   }
-  // Updated configuration for Vercel deployment
 } 
